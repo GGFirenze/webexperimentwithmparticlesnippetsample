@@ -3,9 +3,9 @@
 
 ## Quick Context
 
-Web Experiment is the right starting point for your marketing use cases — less engineering lift than the full Feature Experimentation SDK, and you can always layer that in later.
+Web Experiment is the right starting point for your marketing use cases as it's less engineering lift than the full Feature Experimentation SDK, and you can always layer that in later.
 
-Because mParticle is your sole event source, you'll need a custom integration plugin so the Web Experiment script knows who the user is and routes events through mParticle. There's no out-of-the-box mParticle integration for Web Experiment (only Segment and Tealium have those), so this requires a small custom setup.
+Because mParticle is your sole event source, you'll need a custom integration plugin so the Web Experiment script knows who the user is and routes events through mParticle. There's no out-of-the-box mParticle integration for Web Experiment (only Segment and Tealium have those), so this requires a small custom setup. It would be preferrable to use our analytics Browser SDK.
 
 ## What You'll Need
 
@@ -18,7 +18,7 @@ Because mParticle is your sole event source, you'll need a custom integration pl
 
 Place these two script blocks in `<head>`, as high as possible. The integration plugin **must** come before the Web Experiment script.
 
-```html
+
 <!-- 1. mParticle integration plugin -->
 <script>
 window.experimentIntegration = {
