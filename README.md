@@ -1,5 +1,5 @@
-[JPMC-Web-Experiment-mParticle-Guide.md](https://github.com/user-attachments/files/27027104/JPMC-Web-Experiment-mParticle-Guide.md)
-# Web Experiment with mParticle — Setup Guide for JPMC
+[Web-Experiment-mParticle-Guide.md](https://github.com/user-attachments/files/27027104/JPMC-Web-Experiment-mParticle-Guide.md)
+# Web Experiment with mParticle — Setup Guide
 
 ## Quick Context
 
