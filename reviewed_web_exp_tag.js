@@ -1,5 +1,5 @@
 /*
-  Amplitude Web Experiment — mParticle Custom Integration (JPMC)
+  Amplitude Web Experiment - mParticle Custom Integration.
 
   Place this block BEFORE the Web Experiment script tag in <head>.
   mParticle SDK must load and initialize before this runs.
@@ -11,12 +11,12 @@
        (post-transformation). flag_key -> [Experiment] Flag Key, etc.
        Keep the name "$impression" so ingestion also sets the
        [Experiment] <flag_key> user property that experiment analysis needs.
-    2. mParticle must forward EventType.Other custom events to Amplitude.
+    2. mParticle MUST forward EventType.Other custom events to Amplitude.
     3. Amplitude requires device_id OR user_id on every forwarded batch,
        and the identity is whatever mParticle's Amplitude connection maps
        (NOT what getUser() returns) — it must match the bucketing device_id.
     4. Region mismatch (US vs EU) in the mParticle -> Amplitude connection
-       silently drops events.
+       silently drops events. I do not think this is the problem, but worth flagging it.
     5. Nested event properties (e.g. metadata objects) can break forwarding.
 
   Quick test in browser console after page load:
@@ -105,7 +105,7 @@
 
       var identities = currentUser.getUserIdentities().userIdentities || {};
 
-      // JPMC: change this to the identity mapped to Amplitude user_id
+      // Change this to the identity mapped to Amplitude user_id
       // in mParticle > Connections > Amplitude > User Identification.
       if (identities.customerid) {
         user.user_id = String(identities.customerid);
@@ -171,7 +171,7 @@
           eventProperties
         );
 
-        // Force upload in dev to reduce "I logged it but nothing arrived" confusion.
+        // Force upload in dev to reduce the "I logged it but nothing arrived" confusion.
         if (DEBUG && window.mParticle.upload && typeof window.mParticle.upload === 'function') {
           window.mParticle.upload();
         }
