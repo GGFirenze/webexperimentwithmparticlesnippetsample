@@ -1,5 +1,6 @@
 /*
-  Amplitude Web Experiment - mParticle Custom Integration.
+  Amplitude Web Experiment — mParticle Custom Integration
+  Anonymous / magnet-lead pages — device_id only, no user_id.
 
   Place this block BEFORE the Web Experiment script tag in <head>.
   mParticle SDK must load and initialize before this runs.
@@ -11,12 +12,11 @@
        (post-transformation). flag_key -> [Experiment] Flag Key, etc.
        Keep the name "$impression" so ingestion also sets the
        [Experiment] <flag_key> user property that experiment analysis needs.
-    2. mParticle MUST forward EventType.Other custom events to Amplitude.
-    3. Amplitude requires device_id OR user_id on every forwarded batch,
-       and the identity is whatever mParticle's Amplitude connection maps
-       (NOT what getUser() returns) — it must match the bucketing device_id.
+    2. mParticle must forward EventType.Other custom events to Amplitude.
+    3. Amplitude requires device_id OR user_id on every forwarded batch.
+       For this site, only device_id is used — that is sufficient.
     4. Region mismatch (US vs EU) in the mParticle -> Amplitude connection
-       silently drops events. I do not think this is the problem, but worth flagging it.
+       silently drops events. I do not think this applies to you.
     5. Nested event properties (e.g. metadata objects) can break forwarding.
 
   Quick test in browser console after page load:
@@ -91,37 +91,13 @@
   }
 
   /**
-   * Resolve the same identity mParticle will use when forwarding to Amplitude.
-   * Update the user_id mapping to match your mParticle -> Amplitude connection.
+   * Anonymous users only — return device_id for experiment bucketing.
+   * Must match the device_id mParticle forwards to Amplitude on other events.
    */
   function resolveExperimentUser() {
-    var user = {
+    return {
       device_id: window.mParticle.getDeviceId()
     };
-
-    try {
-      var currentUser = window.mParticle.Identity.getCurrentUser();
-      if (!currentUser) return user;
-
-      var identities = currentUser.getUserIdentities().userIdentities || {};
-
-      // Change this to the identity mapped to Amplitude user_id
-      // in mParticle > Connections > Amplitude > User Identification.
-      if (identities.customerid) {
-        user.user_id = String(identities.customerid);
-      } else if (identities.email) {
-        user.user_id = String(identities.email);
-      }
-
-      var attrs = currentUser.getAllUserAttributes();
-      if (attrs && Object.keys(attrs).length > 0) {
-        user.user_properties = attrs;
-      }
-    } catch (e) {
-      warn('Could not read mParticle identity:', e);
-    }
-
-    return user;
   }
 
   /**
@@ -171,7 +147,7 @@
           eventProperties
         );
 
-        // Force upload in dev to reduce the "I logged it but nothing arrived" confusion.
+        // Force upload in dev to reduce "I logged it but nothing arrived" confusion.
         if (DEBUG && window.mParticle.upload && typeof window.mParticle.upload === 'function') {
           window.mParticle.upload();
         }
@@ -198,7 +174,6 @@
         window.mParticle.isInitialized()),
       experimentUser: null,
       deviceId: null,
-      userIdentities: null,
       testEventSent: false
     };
 
@@ -209,15 +184,6 @@
 
     result.deviceId = window.mParticle.getDeviceId();
     result.experimentUser = resolveExperimentUser();
-
-    try {
-      var currentUser = window.mParticle.Identity.getCurrentUser();
-      if (currentUser) {
-        result.userIdentities = currentUser.getUserIdentities().userIdentities;
-      }
-    } catch (e) {
-      result.identityError = String(e);
-    }
 
     log('Diagnostics:', result);
 
@@ -263,8 +229,8 @@
      - mParticle > Connections > Amplitude > Event Filtering
      - Ensure EventType.Other / custom events are NOT blocked
      - If "Forward Web Requests Server Side" is ON:
-         * user_id must be present on the batch, OR
-         * set Amplitude.device_id user attribute (handled in setup() above)
+         * device_id must be present on the batch (Amplitude.device_id
+           user attribute is set in setup() above)
 
   4) Confirm event lands in Amplitude
      - User Lookup or Event Segmentation
@@ -275,11 +241,11 @@
      - Confirm the [Experiment] <flag_key> user property gets set on the user
        (User Lookup). No user property = experiment analysis stays empty.
 
-  5) Confirm identity alignment for experiment analysis
+  5) Confirm device_id alignment for experiment analysis
      - Run: __amplitudeExperiment.getUser()
-     - Compare user_id / device_id with a normal mParticle event in Amplitude
+     - Compare device_id with a normal mParticle event in Amplitude
        for the same browser session
-     - Mismatched IDs = impressions exist but won't join to conversions
+     - Mismatched device_id = impressions exist but won't join to conversions
 
   6) One-click diagnostic test
      __ampExpMParticleDiagnostics({ sendTestEvent: true })
@@ -288,9 +254,9 @@
   - Searching Amplitude for "$impression" instead of "[Experiment] Impression"
     (in-app data exists, but under the transformed name)
   - mParticle data filter blocks "$impression" or EventType.Other
-  - No valid Amplitude user_id/device_id on forwarded batch (anonymous users)
-  - Forwarded device_id/user_id doesn't match the bucketing identity, so
+  - No valid device_id on forwarded batch (check Amplitude.device_id if S2S)
+  - Forwarded device_id doesn't match the bucketing device_id, so
     impressions never join to conversions -> experiment analysis stays empty
   - Amplitude Kit missing (self-hosted mParticle SDK without Amplitude kit)
-  - Wrong Amplitude project / region (US vs EU) in mParticle connection settings
+  - Wrong Amplitude project / region (US vs EU) in mParticle connection settings - I don't think this is the case for you, though
 */
